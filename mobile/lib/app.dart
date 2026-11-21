@@ -17,6 +17,7 @@ class JogglyApp extends ConsumerWidget {
 
     return MaterialApp(
       title: 'Joggly',
+      debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: auth.loading
           ? Scaffold(
