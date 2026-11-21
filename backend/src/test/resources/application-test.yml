@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:joggly-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  flyway:
+    # The real schema is Postgres-specific (uuid, LEAST/GREATEST index); tests build their own
+    # schema straight from the entities against H2 instead of replaying that migration.
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+joggly:
+  jwt:
+    secret: test-only-secret-not-used-outside-the-test-suite
+    validity-minutes: 43200
+  google:
+    client-ids: test-client-id.apps.googleusercontent.com

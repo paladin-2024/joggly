@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Replace with a real key from https://console.cloud.google.com/apis/credentials
+         (Maps SDK for Android must be enabled for the key's project). Never commit a real
+         key to a public repo without restricting it to your app's package name + SHA-1. -->
+    <string name="google_maps_api_key" translatable="false">REPLACE_WITH_YOUR_MAPS_ANDROID_API_KEY</string>
+</resources>

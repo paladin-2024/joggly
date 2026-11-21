@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    # Port 5434, not Postgres's default 5432: see docker-compose.yml.
+    url: ${JOGGLY_DB_URL:jdbc:postgresql://localhost:5434/joggly}
+    username: ${JOGGLY_DB_USERNAME:joggly}
+    password: ${JOGGLY_DB_PASSWORD:joggly}
+  jpa:
+    hibernate:
+      # Schema is owned by Flyway (db/migration); Hibernate only checks the mapping matches.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+joggly:
+  jwt:
+    # No default on purpose: a missing JOGGLY_JWT_SECRET must fail startup, not fall back to a
+    # secret that's sitting in this file in plain text.
+    secret: ${JOGGLY_JWT_SECRET}
+    validity-minutes: 43200
+  google:
+    client-ids: ${JOGGLY_GOOGLE_CLIENT_IDS}
+  # Dev-only bypass for /api/auth/dev-login (see AuthController). Defaults off; never enable
+  # this in a real deployment.
+  dev-mode: ${JOGGLY_DEV_MODE:false}
