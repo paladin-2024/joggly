@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/theme.dart';
+import '../../core/widgets/illustration.dart';
 import '../../core/widgets/staggered_fade_in.dart';
 import 'connection_models.dart';
 import 'connection_repository.dart';
@@ -51,7 +52,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const HugeIcon(icon: HugeIcons.strokeRoundedUserGroup, color: AppColors.inkSecondary, size: 32),
+              const Illustration(IllustrationAsset.handshake, size: 96),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'No running buddies yet — meet people on the map',

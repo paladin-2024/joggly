@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/theme.dart';
+import '../../core/widgets/illustration.dart';
 import 'auth_controller.dart';
 
 class SignInScreen extends ConsumerWidget {
@@ -21,20 +21,11 @@ class SignInScreen extends ConsumerWidget {
           child: Column(
             children: [
               const Spacer(flex: 3),
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Center(
-                  child: HugeIcon(
-                    icon: HugeIcons.strokeRoundedRunningShoes,
-                    color: Colors.white,
-                    size: 34,
-                  ),
-                ),
+              const Illustration(IllustrationAsset.personRunning, size: 140),
+              const SizedBox(height: AppSpacing.md),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SvgPicture.asset('assets/joggly-mark.svg', width: 48, height: 48),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text('Joggly', style: Theme.of(context).textTheme.headlineMedium),

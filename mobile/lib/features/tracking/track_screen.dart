@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/illustration.dart';
 import '../../core/widgets/staggered_fade_in.dart';
 import 'activity_detail_screen.dart';
 import 'activity_repository.dart';
@@ -95,9 +96,15 @@ class _TrackScreenState extends ConsumerState<TrackScreen> {
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Center(
-                child: Text(
-                  'No runs tracked yet',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.inkSecondary),
+                child: Column(
+                  children: [
+                    const Illustration(IllustrationAsset.personRunning, size: 96),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'No runs tracked yet',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.inkSecondary),
+                    ),
+                  ],
                 ),
               ),
             )

@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/illustration.dart';
 import '../../core/widgets/staggered_fade_in.dart';
 import '../../models/run_event.dart';
 import 'run_detail_screen.dart';
@@ -45,7 +46,7 @@ class _MyRunsScreenState extends ConsumerState<MyRunsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const HugeIcon(icon: HugeIcons.strokeRoundedRunningShoes, color: AppColors.inkSecondary, size: 32),
+              const Illustration(IllustrationAsset.calendar, size: 96),
               const SizedBox(height: AppSpacing.md),
               Text(
                 "You haven't hosted any runs yet",

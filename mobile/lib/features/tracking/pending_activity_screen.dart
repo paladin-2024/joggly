@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../core/format.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/illustration.dart';
 import '../../core/widgets/stat_block.dart';
 import 'activity_detail_screen.dart';
 import 'activity_repository.dart';
@@ -93,6 +94,23 @@ class _PendingActivityScreenState extends ConsumerState<PendingActivityScreen> {
       appBar: AppBar(title: const Text('Run complete')),
       body: Column(
         children: [
+          Container(
+            width: double.infinity,
+            color: AppColors.accentTint,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            child: Row(
+              children: [
+                const Illustration(IllustrationAsset.partyPopper, size: 40),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Nice run! Save it to keep it in your history.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: GoogleMap(
               initialCameraPosition: CameraPosition(target: LatLng(widget.route.first.lat, widget.route.first.lng)),
