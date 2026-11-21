@@ -44,6 +44,16 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<void> devLogin() async {
+    state = state.copyWith(loading: true, error: null);
+    try {
+      final user = await ref.read(authRepositoryProvider).devLogin();
+      state = AuthState(loading: false, user: user);
+    } catch (e) {
+      state = AuthState(loading: false, user: null, error: e.toString());
+    }
+  }
+
   Future<void> signOut() async {
     await ref.read(authRepositoryProvider).signOut();
     state = const AuthState(loading: false, user: null);

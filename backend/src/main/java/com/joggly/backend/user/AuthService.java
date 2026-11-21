@@ -1,11 +1,13 @@
 package com.joggly.backend.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.joggly.backend.common.exception.NotFoundException;
 import com.joggly.backend.security.GoogleTokenVerifier;
 import com.joggly.backend.security.JwtService;
 import com.joggly.backend.user.dto.AuthResponse;
 import com.joggly.backend.user.dto.GoogleAuthRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final String DEV_GOOGLE_ID = "dev-bypass";
+    private static final String DEV_EMAIL = "dev@joggly.local";
+
     private final UserRepository userRepository;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final JwtService jwtService;
+
+    @Value("${joggly.dev-mode}")
+    private boolean devMode;
 
     @Transactional
     public AuthResponse loginWithGoogle(GoogleAuthRequest request) {
@@ -42,6 +50,28 @@ public class AuthService {
                         .avatarUrl(picture)
                         .build());
 
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token, user.getId(), user.getEmail(), user.getDisplayName());
+    }
+
+    /**
+     * Dev-only bypass for trying the app without real Google OAuth credentials configured.
+     * 404s unless joggly.dev-mode=true (JOGGLY_DEV_MODE env var) - never enable in production.
+     */
+    @Transactional
+    public AuthResponse devLogin() {
+        if (!devMode) {
+            throw new NotFoundException("Not found");
+        }
+
+        User user = userRepository.findByGoogleId(DEV_GOOGLE_ID)
+                .orElseGet(() -> User.builder()
+                        .email(DEV_EMAIL)
+                        .googleId(DEV_GOOGLE_ID)
+                        .displayName("Dev User")
+                        .build());
         userRepository.save(user);
 
         String token = jwtService.generateToken(user);

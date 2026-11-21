@@ -14,3 +14,8 @@ const googleServerClientId = String.fromEnvironment(
   'GOOGLE_SERVER_CLIENT_ID',
   defaultValue: '',
 );
+
+/// Shows a "continue without signing in" option on the sign-in screen, backed by the
+/// backend's dev-only /api/auth/dev-login bypass. Off unless explicitly passed via
+/// --dart-define=DEV_MODE=true - never set this for a real build.
+const devMode = bool.fromEnvironment('DEV_MODE', defaultValue: false);

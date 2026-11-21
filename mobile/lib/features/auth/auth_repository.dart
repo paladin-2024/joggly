@@ -41,6 +41,13 @@ class AuthRepository {
     return AuthenticatedUser.fromJson(response as Map<String, dynamic>);
   }
 
+  /// Dev-only bypass: see DEV_MODE in env.dart and /api/auth/dev-login on the backend.
+  Future<AuthenticatedUser> devLogin() async {
+    final response = await _api.post('/api/auth/dev-login', authorized: false);
+    await _tokenStorage.save(response['token'] as String);
+    return AuthenticatedUser.fromJson(response as Map<String, dynamic>);
+  }
+
   Future<AuthenticatedUser?> restoreSession() async {
     try {
       final token = await _tokenStorage.read();

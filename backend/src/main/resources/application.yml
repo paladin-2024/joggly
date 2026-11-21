@@ -26,3 +26,6 @@ joggly:
     validity-minutes: 43200
   google:
     client-ids: ${JOGGLY_GOOGLE_CLIENT_IDS}
+  # Dev-only bypass for /api/auth/dev-login (see AuthController). Defaults off; never enable
+  # this in a real deployment.
+  dev-mode: ${JOGGLY_DEV_MODE:false}

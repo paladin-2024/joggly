@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/env.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/illustration.dart';
 import 'auth_controller.dart';
@@ -64,6 +65,14 @@ class SignInScreen extends ConsumerWidget {
                   label: const Text('Sign in with Google'),
                 ),
               ),
+              if (devMode) ...[
+                const SizedBox(height: AppSpacing.sm),
+                TextButton(
+                  onPressed:
+                      auth.loading ? null : () => ref.read(authControllerProvider.notifier).devLogin(),
+                  child: const Text('Continue without signing in (dev)'),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
             ],
           ),
