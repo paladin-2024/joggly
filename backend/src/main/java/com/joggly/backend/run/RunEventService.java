@@ -63,16 +63,16 @@ public class RunEventService {
 
     @Transactional(readOnly = true)
     public List<NearbyRunResponse> findNearby(double lat, double lng, double radiusKm) {
-        radiusKm = GeoUtils.clampRadiusKm(radiusKm);
-        double latDelta = GeoUtils.latDegreesForRadius(radiusKm);
-        double lngDelta = GeoUtils.lngDegreesForRadius(radiusKm, lat);
+        double clampedRadiusKm = GeoUtils.clampRadiusKm(radiusKm);
+        double latDelta = GeoUtils.latDegreesForRadius(clampedRadiusKm);
+        double lngDelta = GeoUtils.lngDegreesForRadius(clampedRadiusKm, lat);
 
         return runEventRepository.findUpcomingWithinBoundingBox(
                         Instant.now(), lat - latDelta, lat + latDelta, lng - lngDelta, lng + lngDelta)
                 .stream()
                 .map(run -> new Object[] {
                         run, GeoUtils.distanceKm(lat, lng, run.getStartLatitude(), run.getStartLongitude())})
-                .filter(pair -> (double) pair[1] <= radiusKm)
+                .filter(pair -> (double) pair[1] <= clampedRadiusKm)
                 .sorted(Comparator.comparingDouble(pair -> (double) pair[1]))
                 .map(pair -> {
                     RunEvent run = (RunEvent) pair[0];

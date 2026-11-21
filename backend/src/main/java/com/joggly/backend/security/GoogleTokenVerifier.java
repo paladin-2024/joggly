@@ -38,6 +38,11 @@ public class GoogleTokenVerifier {
             return payload;
         } catch (GeneralSecurityException | java.io.IOException e) {
             throw new BadCredentialsException("Could not verify Google ID token", e);
+        } catch (IllegalArgumentException e) {
+            // Thrown by Google's own JWT parser when idTokenString isn't even shaped like a
+            // JWT (e.g. empty, garbage, or a non-JWT string) - a malformed token, not a server
+            // error, so it maps to the same 401 as any other failed verification.
+            throw new BadCredentialsException("Malformed Google ID token", e);
         }
     }
 }

@@ -49,15 +49,15 @@ public class RunnerProfileService {
 
     @Transactional(readOnly = true)
     public List<NearbyRunnerResponse> findNearby(User user, double lat, double lng, double radiusKm) {
-        radiusKm = GeoUtils.clampRadiusKm(radiusKm);
-        double latDelta = GeoUtils.latDegreesForRadius(radiusKm);
-        double lngDelta = GeoUtils.lngDegreesForRadius(radiusKm, lat);
+        double clampedRadiusKm = GeoUtils.clampRadiusKm(radiusKm);
+        double latDelta = GeoUtils.latDegreesForRadius(clampedRadiusKm);
+        double lngDelta = GeoUtils.lngDegreesForRadius(clampedRadiusKm, lat);
 
         return profileRepository.findDiscoverableWithinBoundingBox(
                         user.getId(), lat - latDelta, lat + latDelta, lng - lngDelta, lng + lngDelta)
                 .stream()
                 .map(p -> new Object[] {p, GeoUtils.distanceKm(lat, lng, p.getLatitude(), p.getLongitude())})
-                .filter(pair -> (double) pair[1] <= radiusKm)
+                .filter(pair -> (double) pair[1] <= clampedRadiusKm)
                 .sorted(Comparator.comparingDouble(pair -> (double) pair[1]))
                 .map(pair -> {
                     RunnerProfile p = (RunnerProfile) pair[0];

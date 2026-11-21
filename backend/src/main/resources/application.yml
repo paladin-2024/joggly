@@ -2,9 +2,10 @@ spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/joggly
-    username: joggly
-    password: joggly
+    # Port 5434, not Postgres's default 5432: see docker-compose.yml.
+    url: ${JOGGLY_DB_URL:jdbc:postgresql://localhost:5434/joggly}
+    username: ${JOGGLY_DB_USERNAME:joggly}
+    password: ${JOGGLY_DB_PASSWORD:joggly}
   jpa:
     hibernate:
       # Schema is owned by Flyway (db/migration); Hibernate only checks the mapping matches.
