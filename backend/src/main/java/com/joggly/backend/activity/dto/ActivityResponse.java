@@ -6,6 +6,9 @@ import java.util.UUID;
 
 public record ActivityResponse(
         UUID id,
+        UUID ownerId,
+        String ownerDisplayName,
+        String ownerAvatarUrl,
         Instant startTime,
         int durationSeconds,
         double distanceKm,
@@ -13,5 +16,8 @@ public record ActivityResponse(
         Integer stepCount,
         List<RoutePoint> route,
         List<SplitResponse> splits,
-        UUID runEventId) {
+        UUID runEventId,
+        long kudosCount,
+        boolean kudosGivenByMe,
+        long commentCount) {
 }

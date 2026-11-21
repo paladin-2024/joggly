@@ -4,12 +4,15 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import com.joggly.backend.activity.dto.ActivityResponse;
 import com.joggly.backend.activity.dto.ActivitySummaryResponse;
+import com.joggly.backend.activity.dto.CommentRequest;
+import com.joggly.backend.activity.dto.CommentResponse;
 import com.joggly.backend.activity.dto.ProfileStatsResponse;
 import com.joggly.backend.activity.dto.RoutePoint;
 import com.joggly.backend.activity.dto.SaveActivityRequest;
 import com.joggly.backend.activity.dto.SplitResponse;
 import com.joggly.backend.common.GeoUtils;
 import com.joggly.backend.common.exception.NotFoundException;
+import com.joggly.backend.connection.ConnectionRepository;
 import com.joggly.backend.run.RunEvent;
 import com.joggly.backend.run.RunEventRepository;
 import com.joggly.backend.user.User;
@@ -26,6 +29,9 @@ public class ActivityService {
 
     private final ActivityRepository activityRepository;
     private final RunEventRepository runEventRepository;
+    private final ActivityKudosRepository kudosRepository;
+    private final ActivityCommentRepository commentRepository;
+    private final ConnectionRepository connectionRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -51,13 +57,47 @@ public class ActivityService {
                 .build();
         activityRepository.save(activity);
 
-        return toResponse(activity);
+        return toResponse(activity, user);
     }
 
     @Transactional(readOnly = true)
-    public ActivityResponse get(UUID id, User user) {
-        Activity activity = findOwnedActivity(id, user);
-        return toResponse(activity);
+    public ActivityResponse get(UUID id, User viewer) {
+        Activity activity = findViewableActivity(id, viewer);
+        return toResponse(activity, viewer);
+    }
+
+    @Transactional
+    public ActivityResponse toggleKudos(UUID id, User user) {
+        Activity activity = findViewableActivity(id, user);
+        kudosRepository.findByActivityIdAndUserId(id, user.getId())
+                .ifPresentOrElse(
+                        kudosRepository::delete,
+                        () -> kudosRepository.save(ActivityKudos.builder().activity(activity).user(user).build()));
+        return toResponse(activity, user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> listComments(UUID id, User viewer) {
+        findViewableActivity(id, viewer);
+        return commentRepository.findByActivityIdOrderByCreatedAtAsc(id).stream()
+                .map(c -> new CommentResponse(
+                        c.getId(), c.getUser().getId(), c.getUser().getDisplayName(),
+                        c.getUser().getAvatarUrl(), c.getBody(), c.getCreatedAt()))
+                .toList();
+    }
+
+    @Transactional
+    public CommentResponse addComment(UUID id, User user, CommentRequest request) {
+        Activity activity = findViewableActivity(id, user);
+        ActivityComment comment = ActivityComment.builder()
+                .activity(activity)
+                .user(user)
+                .body(request.body())
+                .build();
+        commentRepository.save(comment);
+        return new CommentResponse(
+                comment.getId(), user.getId(), user.getDisplayName(), user.getAvatarUrl(),
+                comment.getBody(), comment.getCreatedAt());
     }
 
     @Transactional(readOnly = true)
@@ -76,19 +116,27 @@ public class ActivityService {
         return new ProfileStatsResponse(total, distance);
     }
 
-    private Activity findOwnedActivity(UUID id, User user) {
+    /** Visible to its owner, or to anyone with an accepted connection to the owner (feed/kudos/comments). */
+    private Activity findViewableActivity(UUID id, User viewer) {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity not found: " + id));
-        if (!activity.getUser().getId().equals(user.getId())) {
+        boolean isOwner = activity.getUser().getId().equals(viewer.getId());
+        boolean isConnected = !isOwner
+                && connectionRepository.existsAcceptedBetween(viewer.getId(), activity.getUser().getId());
+        if (!isOwner && !isConnected) {
             throw new NotFoundException("Activity not found: " + id);
         }
         return activity;
     }
 
-    private ActivityResponse toResponse(Activity activity) {
+    private ActivityResponse toResponse(Activity activity, User viewer) {
         List<RoutePoint> route = readRoute(activity.getRoutePointsJson());
+        User owner = activity.getUser();
         return new ActivityResponse(
                 activity.getId(),
+                owner.getId(),
+                owner.getDisplayName(),
+                owner.getAvatarUrl(),
                 activity.getStartTime(),
                 activity.getDurationSeconds(),
                 activity.getDistanceKm(),
@@ -96,7 +144,10 @@ public class ActivityService {
                 activity.getStepCount(),
                 route,
                 computeSplits(route),
-                activity.getRunEvent() == null ? null : activity.getRunEvent().getId());
+                activity.getRunEvent() == null ? null : activity.getRunEvent().getId(),
+                kudosRepository.countByActivityId(activity.getId()),
+                kudosRepository.findByActivityIdAndUserId(activity.getId(), viewer.getId()).isPresent(),
+                commentRepository.countByActivityId(activity.getId()));
     }
 
     /** Buckets the route into ~1km splits by cumulative distance; the last split may be partial. */

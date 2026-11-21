@@ -2,6 +2,8 @@ package com.joggly.backend.activity;
 
 import com.joggly.backend.activity.dto.ActivityResponse;
 import com.joggly.backend.activity.dto.ActivitySummaryResponse;
+import com.joggly.backend.activity.dto.CommentRequest;
+import com.joggly.backend.activity.dto.CommentResponse;
 import com.joggly.backend.activity.dto.ProfileStatsResponse;
 import com.joggly.backend.activity.dto.SaveActivityRequest;
 import com.joggly.backend.user.User;
@@ -45,5 +47,21 @@ public class ActivityController {
     @GetMapping("/stats")
     public ProfileStatsResponse stats(@AuthenticationPrincipal User user) {
         return activityService.stats(user);
+    }
+
+    @PostMapping("/{id}/kudos")
+    public ActivityResponse toggleKudos(@AuthenticationPrincipal User user, @PathVariable UUID id) {
+        return activityService.toggleKudos(id, user);
+    }
+
+    @GetMapping("/{id}/comments")
+    public List<CommentResponse> comments(@AuthenticationPrincipal User user, @PathVariable UUID id) {
+        return activityService.listComments(id, user);
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<CommentResponse> addComment(
+            @AuthenticationPrincipal User user, @PathVariable UUID id, @Valid @RequestBody CommentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(activityService.addComment(id, user, request));
     }
 }
