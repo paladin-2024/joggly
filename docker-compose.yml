@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: joggly
+      POSTGRES_USER: joggly
+      POSTGRES_PASSWORD: joggly
+    ports:
+      - "5432:5432"
+    volumes:
+      - joggly-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  joggly-postgres-data:

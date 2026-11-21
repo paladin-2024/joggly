@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/joggly
+    username: joggly
+    password: joggly
+  jpa:
+    hibernate:
+      # Schema is owned by Flyway (db/migration); Hibernate only checks the mapping matches.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+joggly:
+  jwt:
+    # No default on purpose: a missing JOGGLY_JWT_SECRET must fail startup, not fall back to a
+    # secret that's sitting in this file in plain text.
+    secret: ${JOGGLY_JWT_SECRET}
+    validity-minutes: 43200
+  google:
+    client-ids: ${JOGGLY_GOOGLE_CLIENT_IDS}
