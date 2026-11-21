@@ -1,7 +1,9 @@
 package com.joggly.backend.activity;
 
+import com.joggly.backend.activity.dto.AchievementResponse;
 import com.joggly.backend.activity.dto.ActivityResponse;
 import com.joggly.backend.activity.dto.ActivitySummaryResponse;
+import com.joggly.backend.activity.dto.CalendarResponse;
 import com.joggly.backend.activity.dto.CommentRequest;
 import com.joggly.backend.activity.dto.CommentResponse;
 import com.joggly.backend.activity.dto.ProfileStatsResponse;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,5 +66,16 @@ public class ActivityController {
     public ResponseEntity<CommentResponse> addComment(
             @AuthenticationPrincipal User user, @PathVariable UUID id, @Valid @RequestBody CommentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(activityService.addComment(id, user, request));
+    }
+
+    @GetMapping("/calendar")
+    public CalendarResponse calendar(
+            @AuthenticationPrincipal User user, @RequestParam(defaultValue = "12") int weeks) {
+        return activityService.calendar(user, weeks);
+    }
+
+    @GetMapping("/achievements")
+    public List<AchievementResponse> achievements(@AuthenticationPrincipal User user) {
+        return activityService.achievements(user);
     }
 }

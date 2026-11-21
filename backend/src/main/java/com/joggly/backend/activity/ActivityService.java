@@ -2,8 +2,11 @@ package com.joggly.backend.activity;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
+import com.joggly.backend.activity.dto.AchievementResponse;
 import com.joggly.backend.activity.dto.ActivityResponse;
 import com.joggly.backend.activity.dto.ActivitySummaryResponse;
+import com.joggly.backend.activity.dto.CalendarDayResponse;
+import com.joggly.backend.activity.dto.CalendarResponse;
 import com.joggly.backend.activity.dto.CommentRequest;
 import com.joggly.backend.activity.dto.CommentResponse;
 import com.joggly.backend.activity.dto.ProfileStatsResponse;
@@ -16,8 +19,15 @@ import com.joggly.backend.connection.ConnectionRepository;
 import com.joggly.backend.run.RunEvent;
 import com.joggly.backend.run.RunEventRepository;
 import com.joggly.backend.user.User;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -114,6 +124,91 @@ public class ActivityService {
         long total = activityRepository.countByUserId(user.getId());
         double distance = activityRepository.sumDistanceKmByUserId(user.getId());
         return new ProfileStatsResponse(total, distance);
+    }
+
+    /**
+     * A GitHub-contributions-style grid: one entry per day for the last `weeks` weeks. Streaks
+     * are computed from the user's whole history, not just the displayed window, so they match
+     * what achievements() reports.
+     */
+    @Transactional(readOnly = true)
+    public CalendarResponse calendar(User user, int weeks) {
+        List<Activity> all = activityRepository.findByUserIdOrderByStartTimeDesc(user.getId());
+
+        Map<LocalDate, int[]> countByDay = new HashMap<>();
+        Map<LocalDate, Double> distanceByDay = new HashMap<>();
+        for (Activity a : all) {
+            LocalDate day = a.getStartTime().atZone(ZoneOffset.UTC).toLocalDate();
+            countByDay.computeIfAbsent(day, d -> new int[1])[0]++;
+            distanceByDay.merge(day, a.getDistanceKm(), Double::sum);
+        }
+
+        int[] streaks = computeStreaks(countByDay.keySet());
+
+        LocalDate today = Instant.now().atZone(ZoneOffset.UTC).toLocalDate();
+        LocalDate start = today.minusDays((long) weeks * 7 - 1);
+        List<CalendarDayResponse> days = new ArrayList<>();
+        for (LocalDate d = start; !d.isAfter(today); d = d.plusDays(1)) {
+            int count = countByDay.containsKey(d) ? countByDay.get(d)[0] : 0;
+            double distance = distanceByDay.getOrDefault(d, 0.0);
+            days.add(new CalendarDayResponse(d.toString(), count, distance));
+        }
+
+        return new CalendarResponse(days, streaks[0], streaks[1]);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AchievementResponse> achievements(User user) {
+        long totalActivities = activityRepository.countByUserId(user.getId());
+        double totalDistanceKm = activityRepository.sumDistanceKmByUserId(user.getId());
+        Set<LocalDate> activeDays = activeDays(activityRepository.findByUserIdOrderByStartTimeDesc(user.getId()));
+        int longestStreak = computeStreaks(activeDays)[1];
+
+        return List.of(
+                new AchievementResponse("FIRST_RUN", "First Run", "Complete your first tracked run", totalActivities >= 1),
+                new AchievementResponse("RUNS_5", "Getting Started", "Track 5 runs", totalActivities >= 5),
+                new AchievementResponse("RUNS_10", "Habit Builder", "Track 10 runs", totalActivities >= 10),
+                new AchievementResponse("DISTANCE_10", "10K Club", "Run a total of 10 km", totalDistanceKm >= 10),
+                new AchievementResponse("DISTANCE_50", "50K Club", "Run a total of 50 km", totalDistanceKm >= 50),
+                new AchievementResponse("DISTANCE_100", "Century", "Run a total of 100 km", totalDistanceKm >= 100),
+                new AchievementResponse("STREAK_3", "On a Roll", "A 3-day running streak", longestStreak >= 3),
+                new AchievementResponse("STREAK_7", "Unstoppable", "A 7-day running streak", longestStreak >= 7));
+    }
+
+    private Set<LocalDate> activeDays(List<Activity> activities) {
+        Set<LocalDate> days = new HashSet<>();
+        for (Activity a : activities) {
+            days.add(a.getStartTime().atZone(ZoneOffset.UTC).toLocalDate());
+        }
+        return days;
+    }
+
+    /** Returns [currentStreak, longestStreak], both in days, computed from UTC calendar days.
+     *  shortcut: a day counts as "active" the moment it has >=1 activity; there's no grace
+     *  period, so the current streak reads as 0 until today's first run is saved. */
+    private int[] computeStreaks(Set<LocalDate> activeDays) {
+        if (activeDays.isEmpty()) return new int[] {0, 0};
+
+        LocalDate today = Instant.now().atZone(ZoneOffset.UTC).toLocalDate();
+        LocalDate earliest = activeDays.stream().min(LocalDate::compareTo).orElseThrow();
+
+        int longest = 0;
+        int running = 0;
+        for (LocalDate d = earliest; !d.isAfter(today); d = d.plusDays(1)) {
+            if (activeDays.contains(d)) {
+                running++;
+                longest = Math.max(longest, running);
+            } else {
+                running = 0;
+            }
+        }
+
+        int current = 0;
+        for (LocalDate d = today; activeDays.contains(d); d = d.minusDays(1)) {
+            current++;
+        }
+
+        return new int[] {current, longest};
     }
 
     /** Visible to its owner, or to anyone with an accepted connection to the owner (feed/kudos/comments). */
