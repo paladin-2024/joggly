@@ -20,6 +20,11 @@ class AppColors {
   static const successTint = Color(0xFFE9F7EE);
   static const danger = Color(0xFFDC2626);
   static const dangerTint = Color(0xFFFCEAEA);
+
+  /// A second, deliberate accent — not the brand indigo — for streaks/momentum,
+  /// so the app isn't "one color used for everything."
+  static const flame = Color(0xFFEA580C);
+  static const flameTint = Color(0xFFFDF0E6);
 }
 
 class AppSpacing {
@@ -48,22 +53,31 @@ ThemeData buildAppTheme() {
   // helper returns material_ui's TextTheme, not the flutter/material one ThemeData expects.
   // GoogleFonts.outfit() itself returns a plain, unforked TextStyle, so it's unaffected.
   final textTheme = TextTheme(
-    headlineMedium: GoogleFonts.outfit(
-      fontSize: 28,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -0.6,
+    // A dedicated "big number" voice - profile stats, live-tracking readouts - pushed larger
+    // and tighter than before, so key numbers read as a statement, not a caption.
+    headlineLarge: GoogleFonts.outfit(
+      fontSize: 40,
+      fontWeight: FontWeight.w800,
+      letterSpacing: -1.0,
       color: AppColors.ink,
-      height: 1.15,
+      height: 1.05,
+    ),
+    headlineMedium: GoogleFonts.outfit(
+      fontSize: 32,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.8,
+      color: AppColors.ink,
+      height: 1.12,
     ),
     titleLarge: GoogleFonts.outfit(
-      fontSize: 21,
-      fontWeight: FontWeight.w600,
-      letterSpacing: -0.3,
+      fontSize: 22,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.4,
       color: AppColors.ink,
     ),
     titleMedium: GoogleFonts.outfit(
       fontSize: 17,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w700,
       color: AppColors.ink,
     ),
     bodyLarge: GoogleFonts.outfit(fontSize: 16, color: AppColors.ink, height: 1.4),

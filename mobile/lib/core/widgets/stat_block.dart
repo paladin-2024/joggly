@@ -9,15 +9,22 @@ class StatBlock extends StatelessWidget {
   final List<List<dynamic>> icon;
   final String value;
   final String unit;
+  final Color color;
 
-  const StatBlock({super.key, required this.icon, required this.value, required this.unit});
+  const StatBlock({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.unit,
+    this.color = AppColors.accent,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
         children: [
-          HugeIcon(icon: icon, color: AppColors.accent, size: 18),
+          HugeIcon(icon: icon, color: color, size: 18),
           const SizedBox(height: 6),
           Text(
             value,

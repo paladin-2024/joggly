@@ -216,7 +216,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                   ),
                   child: Row(
                     children: [
-                      _LiveStat(label: 'TIME', value: formatElapsed(_elapsedSeconds)),
+                      _LiveStat(label: 'TIME', value: formatElapsed(_elapsedSeconds), emphasis: true),
                       _LiveStat(label: 'KM', value: _distanceKm.toStringAsFixed(2)),
                       _LiveStat(
                         label: 'PACE',
@@ -261,8 +261,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
 class _LiveStat extends StatelessWidget {
   final String label;
   final String value;
+  final bool emphasis;
 
-  const _LiveStat({required this.label, required this.value});
+  const _LiveStat({required this.label, required this.value, this.emphasis = false});
 
   @override
   Widget build(BuildContext context) {
@@ -271,9 +272,7 @@ class _LiveStat extends StatelessWidget {
         children: [
           Text(
             value,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
+            style: (emphasis ? Theme.of(context).textTheme.headlineLarge : Theme.of(context).textTheme.titleLarge)
                 ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.4),
           ),
           Text(label, style: Theme.of(context).textTheme.labelMedium),

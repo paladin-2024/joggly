@@ -154,6 +154,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       icon: HugeIcons.strokeRoundedFire,
                       value: '${calendar.currentStreakDays}',
                       unit: 'day streak',
+                      color: AppColors.flame,
                     ),
                   ],
                 ),
