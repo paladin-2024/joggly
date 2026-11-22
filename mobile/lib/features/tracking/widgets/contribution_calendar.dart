@@ -4,7 +4,9 @@ import '../../../core/theme.dart';
 import '../models/calendar_day.dart';
 
 /// A GitHub-contributions-style grid: one square per day, darker for more
-/// activity that day. Columns run left (oldest) to right (today).
+/// activity that day. Columns run left (oldest) to right (today). Fills the
+/// full available width rather than a fixed cell size, and rings today's
+/// cell so the grid always has a clear anchor to read from.
 class ContributionCalendar extends StatelessWidget {
   final List<CalendarDay> days;
 
@@ -32,42 +34,75 @@ class ContributionCalendar extends StatelessWidget {
       columns.add(padded.sublist(i, i + 7));
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      reverse: true,
-      child: Row(
-        children: columns
-            .map(
-              (column) => Padding(
-                padding: const EdgeInsets.only(right: 3),
-                child: Column(
-                  children: column
-                      .map(
-                        (day) => Padding(
-                          padding: const EdgeInsets.only(bottom: 3),
-                          child: Tooltip(
-                            message: day == null
-                                ? ''
-                                : '${day.date.year}-${day.date.month.toString().padLeft(2, '0')}-'
-                                    '${day.date.day.toString().padLeft(2, '0')}: '
-                                    '${day.count} run${day.count == 1 ? '' : 's'}',
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: day == null ? Colors.transparent : _colorFor(day.count),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
+    const gap = 4.0;
+    final today = days.last.date;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columnCount = columns.length;
+            final cellSize = (constraints.maxWidth - gap * (columnCount - 1)) / columnCount;
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: columns
+                  .map(
+                    (column) => Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: column
+                          .map(
+                            (day) {
+                              final isToday = day != null && day.date == today;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: gap),
+                                child: Tooltip(
+                                  message: day == null
+                                      ? ''
+                                      : '${day.date.year}-${day.date.month.toString().padLeft(2, '0')}-'
+                                          '${day.date.day.toString().padLeft(2, '0')}: '
+                                          '${day.count} run${day.count == 1 ? '' : 's'}',
+                                  child: Container(
+                                    width: cellSize,
+                                    height: cellSize,
+                                    decoration: BoxDecoration(
+                                      color: day == null ? Colors.transparent : _colorFor(day.count),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: isToday ? Border.all(color: AppColors.flame, width: 2) : null,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                          .toList(),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Less', style: TextStyle(color: AppColors.inkSecondary, fontSize: 11)),
+            const SizedBox(width: 6),
+            ...[0, 1, 2, 3].map(
+              (level) => Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(color: _colorFor(level), borderRadius: BorderRadius.circular(3)),
                 ),
               ),
-            )
-            .toList(),
-      ),
+            ),
+            const Text('More', style: TextStyle(color: AppColors.inkSecondary, fontSize: 11)),
+          ],
+        ),
+      ],
     );
   }
 }
