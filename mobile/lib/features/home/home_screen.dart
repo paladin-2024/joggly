@@ -5,9 +5,9 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../core/theme.dart';
 import '../auth/auth_controller.dart';
 import '../connections/connections_screen.dart';
+import '../feed/feed_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
-import '../runs/my_runs_screen.dart';
 import '../tracking/track_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -24,22 +24,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user!;
 
-    final titles = ['Nearby', 'Track', 'My runs', 'Connections', 'Profile'];
+    final titles = ['Feed', 'Nearby', 'Track', 'Connections', 'Profile'];
     final pages = [
+      const FeedScreen(),
       const MapScreen(),
       const TrackScreen(),
-      const MyRunsScreen(),
       ConnectionsScreen(currentUserId: user.id),
       const ProfileScreen(),
     ];
 
     return Scaffold(
-      appBar: _tabIndex == 0 ? null : AppBar(title: Text(titles[_tabIndex])),
-      body: SafeArea(top: _tabIndex == 0, child: pages[_tabIndex]),
+      appBar: _tabIndex == 1 ? null : AppBar(title: Text(titles[_tabIndex])),
+      body: SafeArea(top: _tabIndex == 1, child: pages[_tabIndex]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) => setState(() => _tabIndex = index),
         destinations: const [
+          NavigationDestination(
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedHome01, size: 22),
+            selectedIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome01, size: 22, color: AppColors.accent),
+            label: 'Feed',
+          ),
           NavigationDestination(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedMap, size: 22),
             selectedIcon: HugeIcon(icon: HugeIcons.strokeRoundedMap, size: 22, color: AppColors.accent),
@@ -53,11 +58,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               color: AppColors.accent,
             ),
             label: 'Track',
-          ),
-          NavigationDestination(
-            icon: HugeIcon(icon: HugeIcons.strokeRoundedCalendar02, size: 22),
-            selectedIcon: HugeIcon(icon: HugeIcons.strokeRoundedCalendar02, size: 22, color: AppColors.accent),
-            label: 'My runs',
           ),
           NavigationDestination(
             icon: HugeIcon(icon: HugeIcons.strokeRoundedUserGroup, size: 22),

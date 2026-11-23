@@ -2,7 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
 import '../../core/providers.dart';
+import 'models/achievement.dart';
 import 'models/activity.dart';
+import 'models/calendar_day.dart';
+import 'models/comment.dart';
 import 'models/profile_stats.dart';
 import 'models/route_point.dart';
 
@@ -41,4 +44,22 @@ class ActivityRepository {
   }
 
   Future<ProfileStats> stats() async => ProfileStats.fromJson(await _api.get('/api/activities/stats'));
+
+  Future<ActivityCalendar> calendar({int weeks = 12}) async =>
+      ActivityCalendar.fromJson(await _api.get('/api/activities/calendar', query: {'weeks': weeks}));
+
+  Future<List<Achievement>> achievements() async {
+    final response = await _api.get('/api/activities/achievements');
+    return (response as List).map((e) => Achievement.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Activity> toggleKudos(String id) async => Activity.fromJson(await _api.post('/api/activities/$id/kudos'));
+
+  Future<List<Comment>> comments(String id) async {
+    final response = await _api.get('/api/activities/$id/comments');
+    return (response as List).map((e) => Comment.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<Comment> addComment(String id, String body) async =>
+      Comment.fromJson(await _api.post('/api/activities/$id/comments', body: {'body': body}));
 }
